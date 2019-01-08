@@ -20,6 +20,9 @@ export const name: string = 'relationships';
 export const store: Module<State, any> = {
     state: defaultInitialState,
     mutations: {
+        nodeCreated(state, payload: Node) {
+            state.nodes = [...state.nodes, payload];
+        },
         loaded(state, payload: Graph) {
             state.edges = payload.edges;
             state.nodes = payload.nodes;
@@ -31,6 +34,11 @@ export const store: Module<State, any> = {
             api.findGraph().subscribe(graph => {
                 commit('loaded', graph);
             })
-        }
+        },
+        createNode({commit}, payload: { name: string, kind: string }) {
+            api.addNode(payload).subscribe(node => {
+                commit('nodeCreated', node);
+            })
+        },
     }
 };

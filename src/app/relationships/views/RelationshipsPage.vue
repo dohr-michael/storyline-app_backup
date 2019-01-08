@@ -4,6 +4,7 @@
                         :nodes="nodes"
                         :edges="edges"
         />
+        <button @click="addNode">Add Node</button>
     </div>
 </template>
 
@@ -21,7 +22,7 @@
     @Component<RelationshipsPage>({
         name: 'RelationshipsPage',
         components: {
-            GraphComponent
+            GraphComponent,
         },
         computed: {
             ...mapState({
@@ -38,6 +39,13 @@
 
         mounted() {
             this.$store.dispatch(`${name}/load`);
+        }
+
+        addNode(event: MouseEvent) {
+            this.$store.dispatch(`${name}/createNode`, {
+                name: 'toto',
+                kind: 'Characters',
+            });
         }
     }
 </script>

@@ -1,6 +1,15 @@
 <template>
     <g :transform="`translate(${point.x} ${point.y})`">
-        <circle r="10" cx="0" cy="0" :fill="color" stroke="black"></circle>
+        <circle cx="0"
+                cy="0"
+                :r="nodeRadius"
+                :class="`${node.kind} node`">
+        </circle>
+        <foreignObject :transform="`translate(${-nodeRadius} ${-nodeRadius})`">
+            <div :class="`${node.kind} label`" :style="{width: `${nodeRadius*2}px`, height: `${nodeRadius*2}px`}">
+                <span class="text">{{node.name}}</span>
+            </div>
+        </foreignObject>
     </g>
 </template>
 
@@ -18,22 +27,55 @@
         point!: { x: number, y: number };
         @Prop({required: true})
         node!: Node;
-
-        get color(): string {
-            switch (this.node.kind) {
-                case 'Characters':
-                    return 'blue';
-                case 'Places':
-                    return 'red';
-                case 'Organizations':
-                    return 'yellow';
-                default:
-                    return 'pink';
-            }
-        }
+        @Prop({required: true})
+        nodeRadius!: number;
     }
 </script>
 
 <style lang="scss" scoped>
+    .node {
+        fill: pink;
+        stroke: deeppink;
 
+        &.Characters {
+            fill: blue;
+            stroke: darkblue;
+        }
+
+        &.Places {
+            fill: red;
+            stroke: darkred;
+        }
+
+        &.Organizations {
+            fill: orange;
+            stroke: darkorange;
+        }
+    }
+
+    .label {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: darkblue;
+        &.Characters {
+            color: white;
+        }
+
+        &.Places {
+            color: white;
+        }
+
+        &.Organizations {
+            color: white;
+        }
+
+        .text {
+            overflow: hidden;
+            // width: 100%;
+            font-size: .8em;
+            text-align: center;
+            text-overflow: ellipsis;
+        }
+    }
 </style>
