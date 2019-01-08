@@ -14,6 +14,7 @@
             </g>
             <g>
                 <GraphNode v-for="node in nodeDatums"
+                           :key="`${node.nodeId}`"
                            :point="getPoint(node)"
                            :node="node"
                            :nodeRadius="nodeRadius"
@@ -62,14 +63,14 @@
 
         simulation?: d3.Simulation<NodeDatum, LinkDatum>;
 
-        contentSelection?: d3.Selection;
+        contentSelection?: d3.Selection<HTMLElement, NodeDatum, any, any>;
 
 
         getPoint(node: string | number | NodeDatum): { x: number, y: number } {
             if (typeof node === 'object') {
                 return {
-                    x: node.x,
-                    y: node.y,
+                    x: node.x || 0,
+                    y: node.y || 0,
                 }
             }
             return {
@@ -86,31 +87,37 @@
         }
 
         onZoom() {
-            console.log(d3.event.transform);
             if (this.contentSelection) {
                 this.contentSelection.attr('transform', d3.event.transform);
             }
         }
 
-        dragSubject(): NodeDatum {
+        dragSubject() {
+            if(!this.simulation || !d3.event) return undefined;
             return this.simulation.find(d3.event.x, d3.event.y, this.nodeRadius);
         }
 
         dragStarted() {
-            if (!d3.event.active) this.simulation.alphaTarget(0.3).restart();
-            d3.event.subject.fx = d3.event.subject.x;
-            d3.event.subject.fy = d3.event.subject.y;
+            if(d3.event && d3.event.subject && this.simulation) {
+                if (!d3.event.active) this.simulation.alphaTarget(0.3).restart();
+                d3.event.subject.fx = d3.event.subject.x;
+                d3.event.subject.fy = d3.event.subject.y;
+            }
         }
 
         dragged() {
-            d3.event.subject.fx = d3.event.x;
-            d3.event.subject.fy = d3.event.y;
+            if(d3.event && d3.event.subject) {
+                d3.event.subject.fx = d3.event.x;
+                d3.event.subject.fy = d3.event.y;
+            }
         }
 
         dragEnded() {
-            if (!d3.event.active) this.simulation.alphaTarget(0);
-            d3.event.subject.fx = null;
-            d3.event.subject.fy = null;
+            if(d3.event && d3.event.subject && this.simulation) {
+                if (!d3.event.active) this.simulation.alphaTarget(0);
+                d3.event.subject.fx = null;
+                d3.event.subject.fy = null;
+            }
         }
 
         updateData(nodes: Node[], edges: Relation[]) {
@@ -153,7 +160,6 @@
                 .force('collide', d3.forceCollide<NodeDatum>(this.nodeRadius + 10))
                 //.force('x', d3.forceX<NodeDatum>(this.viewportWidth / 2).strength(1))
                 //.force('y', d3.forceY<NodeDatum>(this.viewportHeight / 2).strength(1))
-                //.force('gravity', d3.forceY<NodeDatum>().strength(-1).y(this.viewportHeight))
                 .force('center', d3.forceCenter<NodeDatum>(this.viewportWidth / 2, this.viewportHeight / 2))
                 .on('tick', this.onTick);
         }
@@ -170,14 +176,14 @@
         }
 
         mounted() {
-            this.contentSelection = d3.select(this.$refs['graph-content'] as Element);
+            this.contentSelection = d3.select(this.$refs['graph-content'] as HTMLElement);
             const zoom = d3.zoom()
                 .scaleExtent([.1, 4])
                 .on('zoom', this.onZoom);
 
-            const drag = d3.drag()
+            const drag = d3.drag<HTMLElement, NodeDatum>()
                 .container(this.$refs['graph-content'] as HTMLElement)
-                .subject(this.dragSubject)
+                .subject(this.dragSubject as any)
                 .on('start', this.dragStarted)
                 .on('drag', this.dragged)
                 .on('end', this.dragEnded);

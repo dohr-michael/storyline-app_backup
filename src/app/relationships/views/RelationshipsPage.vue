@@ -4,7 +4,6 @@
                         :nodes="nodes"
                         :edges="edges"
         />
-        <button @click="addNode">Add Node</button>
     </div>
 </template>
 
